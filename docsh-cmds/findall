@@ -1,0 +1,13 @@
+BASE='administration shell-scripting standards security week test'
+
+#for DIR in administration shell-scripting standards security week test
+for DIR in $BASE
+do
+ssh $DOCSRV "cd $DOCPATH ; find $DIR -type d -print"
+done > /tmp/$$.pick
+
+vi /tmp/$$.pick
+
+DOCDIR=`grep "*" /tmp/$$.pick | awk '{ print $1}'`
+
+rm /tmp/$$.pick

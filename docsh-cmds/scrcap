@@ -1,0 +1,15 @@
+WD=`pwd`
+cd $DOCBIN
+cp empty.png webimage.png
+mspaint webimage.png
+scp webimage.png $URI/$THISPAGE-$THISSECTION.png 
+
+cd $WD
+
+echo "<div class=spacing>
+  <div>
+   <img src=$THISPAGE-$THISSECTION.png>
+  </div>
+</div>" > $THISPAGE-$THISSECTION.php
+
+scp $THISPAGE-$THISSECTION.php $URI/.

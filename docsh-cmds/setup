@@ -1,0 +1,11 @@
+ln -s ~/bin/docsh-cmds/docsh ~/bin/docsh
+ln -s ~/bin/docsh-cmds/yesterday ~/bin/yesterday
+grep ")" docsh-cmds/white | awk '{ print $1 }' | grep -v "#" | sed 's/)//g' | xargs -n1 ln -s docsh-cmds/white
+vi ~/bin/docsh-cmds/docsh.ini
+
+. ~/bin/docsh-cmds/docsh.ini
+
+scp $BIN/childindex.php $DOCSRV:$DOCPATH
+scp $BIN/style.css $DOCSRV:$DOCPATH
+ssh $DOCSRV mkdir $RBIN
+scp $BIN/docls.remote $DOCSRV:$RBIN

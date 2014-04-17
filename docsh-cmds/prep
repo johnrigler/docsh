@@ -1,0 +1,57 @@
+#!/bin/bash 
+
+# Embedded sets of text 
+# I find that this is a clean way to store and 
+# print blocks of text.  The 'embedded' function 
+# reads from the code blocks below by greping 
+# this entire script 
+# One benefit of this is that blocks of text can 
+# be formatted in one place and then called in 
+# another place while stilling using indention 
+# within the code. 
+
+THIS=$0
+
+##UUsage: You must specify a file name starting with z, ex: z3
+
+##Vvi editor not supported in this environment
+
+##0<!---- Begin code snippet ---->
+##0<div class=spacing>
+##0  <pre>
+
+##1  </pre>
+##1</div>
+##1
+##1<!---- End code snippet ---->
+
+function embedded { #- By grepping $0, or $THIS, this script looks at itself 
+    #- and reads out lines starting with '##N' 
+    #- this function acts as a filter 
+
+grep "^##$1" $THIS |  cut -c 4-
+
+} 
+
+PRELEN=90
+PS1="`pwd`> "
+LINE=/tmp/$$.line
+EVAL=/tmp/$$.eval
+ERROR=/tmp/$$.error
+DEST=/tmp/$$.dest
+
+embedded 0 > $DEST
+
+while read LINE 
+do
+echo $LINE
+
+done | sed -f $DOCBIN/html.sed >> $DEST
+
+embedded 1 >> $DEST
+
+cat $DEST
+
+scp $DEST $URI/$THISPAGE-$THISSECTION.php
+
+rm /tmp/$$.* 

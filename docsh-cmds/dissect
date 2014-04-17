@@ -1,0 +1,10 @@
+grep "^function" $1 | while read TRASH FUNCTION TRASH
+do
+	echo $FUNCTION
+	HASH=`grep -p "function $FUNCTION" $1 | cksum | sed 's/ /\./g'`
+	grep -p "function $FUNCTION" $1 > $FUNCTION.$HASH
+done
+
+HASH=`grep -p -v "^function" $1  | cksum | sed 's/ /\./g'`
+
+grep -p -v "^function" $1 > $1.$HASH

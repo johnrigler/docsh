@@ -1,0 +1,225 @@
+. /usr/local/bin/docsh-cmds/docsh.ini
+
+umask 000
+
+printf "Enter document directory: "
+read DOCDIR
+DOCBIN="$BIN/docsh-cmds"
+
+URI="$DOCSRV:$DOCPATH/$DOCDIR"
+THISPAGE="1"
+THISSECTION="1"
+
+echo $PATH | grep docsh-cmds > /dev/null
+
+if [[ $? -eq 1 ]]
+        then
+        PATH="$PATH:$DOCBIN"
+        fi
+
+export DOCSRV DOCPATH LOCALDOCPATH URI THISPAGE THISSECTION PATH DOCBIN
+
+ssh $DOCSRV "mkdir -p $DOCPATH/$DOCDIR"
+
+function div { # Create the current part as a text division
+
+#- Write two lines to a temporary file -#
+
+TOP=/tmp/$$.top
+MIDDLE=/tmp/$$.middle
+END=/tmp/$$.end
+DEST=/tmp/$$.dest
+
+echo "<div class=spacing>" > $TOP
+echo "  <div>" >> $TOP
+echo >> $TOP
+
+#- Open an editor to allow me to enter in text into a second file. -#
+vi $MIDDLE
+#- Write two more lines to a third temporary file -#
+
+echo "  </div>" > $END
+echo "</div>" >> $END
+echo >> $END
+
+#- concatenate all three files into a forth one specified by argument -#
+cat $TOP $MIDDLE $END > $DEST 
+
+scp $DEST $URI/$THISPAGE-$THISSECTION.php
+
+#- remove temporary files -#
+rm /tmp/$$.*
+
+}
+
+function note { # Create a text blurb describing this
+
+echo $0 $*
+
+DATE=`date "+%Y-%m-%d"`
+DATE=`yesterday $1`
+NOTE=note-"$DATE".txt
+
+scp $URI/$NOTE /tmp/.
+
+if [[ -z $HOST ]]
+        then
+        HOST=`hostname`
+        fi
+
+echo "-----------------------------------------------------
+Hostname: $HOST
+" >> /tmp/$NOTE
+
+vi /tmp/$NOTE
+
+scp /tmp/$NOTE $URI/.
+#ssh $DOCSRV "chmod 644 $DOCPATH/$DOCDIR/$NOTE"
+
+rm /tmp/$NOTE
+
+
+}
+
+function docnp { # Move forst to next web page
+
+PAGENO=`echo $THISPAGE.php | sed 's/.php//g'` 
+
+let NEXT=PAGENO+1
+
+THISPAGE=$NEXT
+
+printf "%c.php\n" $THISPAGE
+
+}
+
+function doccp { # Change to $1 page ( don't specify .php )
+
+if [[ ! -n $1 ]]
+then
+  let NEXT=THISPAGE+1
+  else
+  let NEXT=$1
+fi
+
+THISSECTION="1"
+THISPAGE="$NEXT"
+
+docls
+
+}
+
+function doccs { # Change to $1 section
+
+ if [[ ! -n $1 ]]
+  then
+  let THISSECTION=THISSECTION+1
+  else
+  THISSECTION=$1
+  fi
+
+ if [[ $THISSECTION -eq 0 ]]
+	then
+	THISSECTION=1
+	fi
+
+changefont green
+echo "Host: $HOST | Page: $THISPAGE | Section: $THISSECTION"
+changefont white
+}
+
+function b { # Change to last section
+
+let THISSECTION=THISSECTION-1
+
+doccs $THISSECTION 
+
+}
+
+function n { # Change to next section
+
+doccs
+
+}
+
+function changefont { # change font to white, bold, underline, error(red), green, yellow, blue, purple, or aqua)
+
+case $1 in
+  white) FG='0m';;
+  bold) FG='1m';;
+  underline) FG='4m';;
+  error) FG='31m' ;;
+  green) FG='32m' ;;
+  yellow) FG='33m' ;;
+  blue) FG='34m' ;;
+  purple) FG='35m' ;;
+  aqua) FG='36m' ;;
+  esac
+
+echo -n -e "\033[$FG";
+
+}
+
+
+function docls { # Display list of page pieces for current page 
+
+ssh $DOCSRV "/usr/local/bin/docsh-cmds/docls.remote $DOCPATH/$DOCDIR"
+ssh $DOCSRV "/usr/local/bin/docsh-cmds/readnotes $DOCPATH/$DOCDIR"
+changefont green
+echo "URI: $URI"
+echo "Host: $HOST"
+echo "Page: $THISPAGE"
+echo "Section: $THISSECTION"
+changefont white
+
+}
+
+function docvi { # Edit specified or current section of current page
+
+scp $URI/$THISPAGE-$THISSECTION.php /tmp/$$.docvi
+
+vi /tmp/$$.docvi
+
+scp /tmp/$$.docvi $URI/$THISPAGE-$THISSECTION.php
+
+rm /tmp/$$.docvi 
+
+}
+
+function docw { # Publish Current page 
+
+ssh $DOCSRV "cp $DOCPATH/library/* $DOCPATH/$DOCDIR"
+ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; cat 0.php $THISPAGE-*.php > $THISPAGE.php"
+
+
+echo "<div class=shortspacing style='float:left'>
+  <div class=shortredbox>
+        <a href=/$DOCDIR style=color:white> $DOCDIR </a>
+  </div>
+</div>" >> /tmp/$$.me.php
+
+ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; ln -s 1.php index.php 2>/dev/null"
+
+scp /tmp/$$.me.php $URI/me.php >/dev/null 2>&1
+
+rm /tmp/$$.me.php
+ssh $DOCSRV "cd  $DOCPATH/$DOCDIR ; if [[ -f ../me.php ]]; then ln -s ../me.php parent.php 2>/dev/null; fi"
+ssh $DOCSRV "cd  $DOCPATH/$DOCDIR ; if [[ -f ../../me.php ]]; then ln -s ../../me.php grand-parent.php 2>/dev/null; fi"
+ssh $DOCSRV "cd  $DOCPATH/$DOCDIR ; if [[ -f ../../../me.php ]]; then ln -s ../../../me.php great-grand-parent.php 2>/dev/null; fi"
+
+}
+
+function docrm { # Remove all sections of current page
+
+WD=$PWD
+cd $LOCALDOCPATH/$THISPAGE
+rm $*
+cd $WD
+THISSECTION=1
+}
+
+function dochelp { # Display this help
+
+egrep 'alias|function' /usr/local/bin/docsh
+
+}

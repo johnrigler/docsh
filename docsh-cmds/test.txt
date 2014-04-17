@@ -1,0 +1,14 @@
+Script started on Tue Jun  1 15:04:29 2010
+<span style=color:green>RiglJohA@D0019L-2M5MWH1 <span style=color:yellow>/usr/local/bin/docsh-cmds<span style=color:black>
+$ 
+<span style=color:green>RiglJohA@D0019L-2M5MWH1 <span style=color:yellow>/usr/local/bin/docsh-cmds<span style=color:black>
+$ 
+<span style=color:green>RiglJohA@D0019L-2M5MWH1 <span style=color:yellow>/usr/local/bin/docsh-cmds<span style=color:black>
+$ 
+<span style=color:green>RiglJohA@D0019L-2M5MWH1 <span style=color:yellow>/usr/local/bin/docsh-cmds<span style=color:black>
+$ 
+<span style=color:green>RiglJohA@D0019L-2M5MWH1 <span style=color:yellow>/usr/local/bin/docsh-cmds<span style=color:black>
+$ exit
+exit
+
+Script done on Tue Jun  1 15:04:32 2010Z

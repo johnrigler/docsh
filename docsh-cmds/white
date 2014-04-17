@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Name this program 'white' in your bin directory and 
+# then add symbolic links to create the other 
+# colors, I call red error because there is already 
+# a red command on linux that is a text editor
+# You can pull that information from here with 
+# grep ")" white | awk '{ print $1 }' | grep -v "#" | sed 's/)//g' | grep -v white | xargs -n1 ln -s white
+
+case `basename $0` in
+  white) FG='0m';;
+  bold) FG='1m';;
+  underline) FG='4m';;
+  error) FG='31m' ;;
+  green) FG='32m' ;;
+  yellow) FG='33m' ;;
+  blue) FG='34m' ;;
+  purple) FG='35m' ;;
+  aqua) FG='36m' ;;
+  esac
+
+echo -n -e "\033[$FG";
+

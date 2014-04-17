@@ -1,0 +1,262 @@
+. ~/bin/docsh-cmds/docsh.ini
+
+umask 000
+
+DOCBIN="$BIN"
+WD=`pwd`
+PS1SAVE="$PS1"
+
+URI="$DOCSRV:$DOCPATH/$DOCDIR"
+THISPAGE="1"
+THISSECTION="1"
+
+echo $PATH | grep docsh-cmds > /dev/null
+
+if [[ $? -eq 1 ]]
+        then
+        PATH="$PATH:$DOCBIN"
+	PATH="$PATH:."
+        fi
+
+setwidth
+
+export DOCSRV DOCPATH LOCALDOCPATH URI THISPAGE THISSECTION PATH DOCBIN WD PS1SAVE
+
+#ssh $DOCSRV "mkdir -p $DOCPATH/$DOCDIR"
+
+function div { # Create the current part as a text division
+
+#- Write two lines to a temporary file -#
+
+TOP=/tmp/$$.top
+MIDDLE=/tmp/$$.middle
+END=/tmp/$$.end
+DEST=/tmp/$$.dest
+
+echo "<div class=spacing>" > $TOP
+echo "  <div>" >> $TOP
+echo >> $TOP
+
+#- Open an editor to allow me to enter in text into a second file. -#
+vi $MIDDLE
+#- Write two more lines to a third temporary file -#
+
+echo "  </div>" > $END
+echo "</div>" >> $END
+echo >> $END
+
+#- concatenate all three files into a forth one specified by argument -#
+cat $TOP $MIDDLE $END > $DEST 
+
+scp $DEST $URI/$THISPAGE-$THISSECTION.php
+
+#- remove temporary files -#
+rm /tmp/$$.*
+
+}
+
+function docmenu { # Sets current page as a menu
+
+docw
+
+ssh $DOCSRV rm $DOCPATH/$DOCDIR/index.php
+ssh $DOCSRV cp "$DOCPATH/library/subdir-index.php" $DOCPATH/$DOCDIR/index.php 2>/dev/null
+
+}
+
+function description { # Add a description to be seen on the parent menu
+
+MIDDLE=/tmp/$$.middle
+
+vi $MIDDLE
+
+scp $MIDDLE $URI/desc.php
+
+rm $MIDDLE
+
+}
+
+function docsel { # Select path from a list 
+
+echo "A 'vi' session will open in a bit, place an asterisk (*) next to your choice and 
+then simply save"
+
+. findall
+
+URI="$DOCSRV:$DOCPATH/$DOCDIR"
+ssh $DOCSRV mkdir $DOCPATH/$DOCDIR 2>/dev/null
+ssh $DOCSRV chmod 744 $DOCPATH/$DOCDIR
+
+docls
+
+}
+
+function docset { # Enter pack as an option
+
+DOCDIR=$1
+
+URI="$DOCSRV:$DOCPATH/$DOCDIR"
+ssh $DOCSRV mkdir $DOCPATH/$DOCDIR 2>/dev/null
+ssh $DOCSRV chmod 775 $DOCPATH/$DOCDIR
+#ssh $DOCSRV cp "$DOCPATH/library/subdir-index.php" $DOCPATH/$DOCDIR/index.php 2>/dev/null
+ssh $DOCSRV ln -s $DOCPATH/childindex.php $DOCPATH/$DOCDIR/index.php
+
+docls
+
+}
+
+
+
+function note { # Create a text blurb describing this
+
+echo $0 $*
+
+DATE=`date "+%Y-%m-%d"`
+DATE=`yesterday $1`
+NOTE=note-"$DATE".txt
+
+scp $URI/$NOTE /tmp/.
+
+if [[ -z $HOST ]]
+        then
+        HOST=`hostname`
+        fi
+
+echo "-----------------------------------------------------
+Hostname: $HOST
+" >> /tmp/$NOTE
+
+vi /tmp/$NOTE
+
+scp /tmp/$NOTE $URI/.
+#ssh $DOCSRV "chmod 660 $DOCPATH/$DOCDIR/$NOTE"
+
+rm /tmp/$NOTE
+
+
+}
+
+function docnp { # Move forst to next web page
+
+PAGENO=`echo $THISPAGE.php | sed 's/.php//g'` 
+
+let NEXT=PAGENO+1
+
+THISPAGE=$NEXT
+
+printf "%c.php\n" $THISPAGE
+
+}
+
+function doccp { # Change to $1 page ( don't specify .php )
+
+if [[ ! -n $1 ]]
+then
+  let NEXT=THISPAGE+1
+  else
+  let NEXT=$1
+fi
+
+THISSECTION="1"
+THISPAGE="$NEXT"
+
+docls
+
+}
+
+function doccs { # Change to $1 section
+
+ if [[ ! -n $1 ]]
+  then
+  let THISSECTION=THISSECTION+1
+  else
+  THISSECTION=$1
+  fi
+
+ if [[ $THISSECTION -eq 0 ]]
+	then
+	THISSECTION=1
+	fi
+
+changefont green
+echo "Host: $HOST | Page: $THISPAGE | Section: $THISSECTION"
+changefont white
+}
+
+function b { # Change to last section
+
+let THISSECTION=THISSECTION-1
+
+doccs $THISSECTION 
+
+}
+
+function n { # Change to next section
+
+doccs
+
+}
+
+function docls { # Display list of page pieces for current page 
+
+ssh $DOCSRV "$RBIN/docls.remote $DOCBIN $DOCPATH/$DOCDIR $THISPAGE"
+#ssh $DOCSRV "/usr/local/bin/docsh-cmds/readnotes $DOCPATH/$DOCDIR"
+changefont green
+echo "URI: $URI"
+echo "Host: $HOST"
+echo "Page: $THISPAGE"
+echo "Section: $THISSECTION"
+changefont white
+
+}
+
+function docvi { # Edit specified or current section of current page
+
+scp $URI/$THISPAGE-$THISSECTION.php /tmp/$$.docvi
+
+vi /tmp/$$.docvi
+
+scp /tmp/$$.docvi $URI/$THISPAGE-$THISSECTION.php
+
+rm /tmp/$$.docvi 
+
+}
+
+function docw { # Publish Current page 
+
+ssh $DOCSRV "cp $DOCPATH/library/* $DOCPATH/$DOCDIR"
+ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; cat heading $THISPAGE-?.php $THISPAGE-??.php > $THISPAGE.php 2>/dev/null"
+
+DOCBASE=`basename $DOCDIR`
+
+echo "<div class=shortspacing style='float:left'>
+  <div class=shortredbox>
+        <a href=/$DOCDIR style=color:white> $DOCBASE </a>
+  </div>
+</div>" >> /tmp/$$.me.php
+
+# ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; ln -fs 1.php index.php 2>/dev/null"
+
+scp /tmp/$$.me.php $URI/me.php >/dev/null 2>&1
+
+rm /tmp/$$.me.php
+ssh $DOCSRV "cd  $DOCPATH/$DOCDIR ; if [[ -f ../me.php ]]; then ln -s ../me.php parent.php 2>/dev/null; fi"
+ssh $DOCSRV "cd  $DOCPATH/$DOCDIR ; if [[ -f ../../me.php ]]; then ln -s ../../me.php grand-parent.php 2>/dev/null; fi"
+ssh $DOCSRV "cd  $DOCPATH/$DOCDIR ; if [[ -f ../../../me.php ]]; then ln -s ../../../me.php great-grand-parent.php 2>/dev/null; fi"
+
+}
+
+function docrm { # Remove all sections of current page
+
+WD=$PWD
+cd $LOCALDOCPATH/$THISPAGE
+rm $*
+cd $WD
+THISSECTION=1
+}
+
+function dochelp { # Display this help
+
+egrep 'alias|function' /usr/local/bin/docsh
+
+}

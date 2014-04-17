@@ -1,0 +1,16 @@
+
+if [[ $1 ]]
+	then
+	HTMLDIR=$1
+	else
+	HTMLDIR=/srv/www/htdocs
+	fi
+
+find $HTMLDIR | grep "note-" | while read LINE
+	do 
+	NAME=`basename $LINE`
+	echo $NAME $LINE
+	done | sort -n | while read TRASH SORTED
+		do
+		echo $SORTED
+		done

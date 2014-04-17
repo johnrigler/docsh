@@ -1,0 +1,24 @@
+. $1/docsh.ini
+
+cd $2
+
+ls . | grep "$3-*.php" | grep -v "\./" | while read FILE
+do
+changefont aqua
+echo "----- Begin: $FILE -------------"
+changefont white
+cat $FILE | grep -v "<div" | grep -v " Begin code snippet" | grep -v "  <pre" | grep -v "^$" | head -2
+changefont aqua
+echo "----- End:  $FILE --------------"
+echo
+done
+
+ls . | grep "note-" | while read NOTENAME
+	do
+	changefont aqua
+	echo $NOTENAME
+	changefont white
+	cat $NOTENAME
+	done
+
+changefont white

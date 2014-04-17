@@ -1,0 +1,6 @@
+echo "[-----------------------------------------------------------------------------------------]"
+echo "[   Set your console to be exactly the width of this box                                  ]"
+echo "[   If you need to see this again, type 'setwidth'                                        ]"
+echo "[   When you are done, type 'docsel' to pick your categorization or                       ]"
+echo "[   type 'docset CATEGORIZATION' if you know it                                           ]" 
+echo "[-----------------------------------------------------------------------------------------]"

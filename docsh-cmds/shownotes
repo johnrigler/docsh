@@ -1,0 +1,16 @@
+
+changefont yellow
+
+ssh $DOCSRV find $DOCPATH | grep "note-" | while read LINE
+	do 
+	NAME=`basename $LINE`
+	echo $NAME $LINE
+	done | sort -n | while read TRASH SORTED
+		do
+		echo $SORTED
+		if [[ `basename $0` = "readnotes" ]]
+			then
+			cat $SORTED
+			fi
+		done
+changefont white

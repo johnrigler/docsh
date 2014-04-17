@@ -1,0 +1,18 @@
+total 64
+drwxr-xr-x  2 rigler rigler 4096 Feb 17 13:06 ./
+drwxr-xr-x  3 rigler rigler 4096 Feb 14 06:39 ../
+-rw-r--r--  1 rigler rigler   33 Feb  9 13:42 1.php
+-rw-r--r--  1 rigler rigler  299 Feb 11 12:58 begin.php
+-rwx------  1 rigler rigler  152 Feb 17 12:54 bothout*
+-rwxr-xr-x  1 rigler rigler 3844 Feb 14 06:39 docsh*
+-rw-r--r--  1 rigler rigler   18 Feb  3 13:56 eval.sed
+-rw-r--r--  1 rigler rigler 1054 Feb 11 12:58 forwardback.php
+-rw-r--r--  1 rigler rigler  555 Feb  5 11:54 html.sed
+-rw-r--r--  1 rigler rigler  163 Feb  8 17:12 me.php
+-rwxr-xr-x  1 rigler rigler  108 Feb  9 11:13 nextpage*
+-rwxr-xr-x  1 rigler rigler  194 Feb 17 13:06 outnomark*
+-rwxr-xr-x  1 rigler rigler 1979 Feb 11 15:20 pre*
+-rwxr-xr-x  1 rigler rigler 1446 Feb 17 12:35 prep*
+-rwxr-xr-x  1 rigler rigler   64 Feb 11 15:00 tty-to-html*
+-rw-r--r--  1 rigler rigler  284 Feb  5 15:38 tty-to-html.sed
+-rw-rw-rw-  1 rigler rigler    0 Feb 17 13:03 typescript
