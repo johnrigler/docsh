@@ -8,7 +8,7 @@ export DOCSRV="jartest@rigler.org"
 export DOCPATH="/home/jartest/www"
 
 ####  This is where the binary files will live
-export BIN="/home/jartest/bin/docsh-cmds"
+export BIN="/home/jartest/docsh/docsh-cmds"
 
 #### This is the remote directory that the 'ls' command will be exported to
 export RBIN=$BIN/remote

@@ -1,4 +1,4 @@
-. ~/bin/docsh-cmds/docsh.ini
+. ~/docsh/docsh-cmds/docsh.ini
 
 umask 000
 
