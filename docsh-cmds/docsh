@@ -1,8 +1,8 @@
-. ~/docsh/docsh-cmds/docsh.ini
+. /usr/local/bin/docsh-cmds/docsh.ini
 
 umask 000
 
-DOCBIN="$BIN"
+DOCBIN="$BIN/docsh-cmds"
 WD=`pwd`
 PS1SAVE="$PS1"
 
@@ -17,8 +17,6 @@ if [[ $? -eq 1 ]]
         PATH="$PATH:$DOCBIN"
 	PATH="$PATH:."
         fi
-
-setwidth
 
 export DOCSRV DOCPATH LOCALDOCPATH URI THISPAGE THISSECTION PATH DOCBIN WD PS1SAVE
 
@@ -55,15 +53,6 @@ rm /tmp/$$.*
 
 }
 
-function docmenu { # Sets current page as a menu
-
-docw
-
-ssh $DOCSRV rm $DOCPATH/$DOCDIR/index.php
-ssh $DOCSRV cp "$DOCPATH/library/subdir-index.php" $DOCPATH/$DOCDIR/index.php 2>/dev/null
-
-}
-
 function description { # Add a description to be seen on the parent menu
 
 MIDDLE=/tmp/$$.middle
@@ -76,36 +65,31 @@ rm $MIDDLE
 
 }
 
-function docsel { # Select path from a list 
+function docsel { # Move to the bin directory for directory picklist
 
-echo "A 'vi' session will open in a bit, place an asterisk (*) next to your choice and 
-then simply save"
-
-. findall
-
-URI="$DOCSRV:$DOCPATH/$DOCDIR"
-ssh $DOCSRV mkdir $DOCPATH/$DOCDIR 2>/dev/null
-ssh $DOCSRV chmod 744 $DOCPATH/$DOCDIR
-
-docls
+WD=`pwd`
+cd $DOCBIN/choices 
+PS1SAVE="$PS1"
+PS1=" "
+change-font yellow
+echo "To select a new document path, type 'docset' followed by your choice, use [TAB] for path completion"
 
 }
 
-function docset { # Enter pack as an option
+function docset { # Sets, path to $1, run after docbin
+
+PS1="$PS1SAVE"
 
 DOCDIR=$1
-
 URI="$DOCSRV:$DOCPATH/$DOCDIR"
-ssh $DOCSRV mkdir $DOCPATH/$DOCDIR 2>/dev/null
-ssh $DOCSRV chmod 775 $DOCPATH/$DOCDIR
-#ssh $DOCSRV cp "$DOCPATH/library/subdir-index.php" $DOCPATH/$DOCDIR/index.php 2>/dev/null
-ssh $DOCSRV ln -s $DOCPATH/childindex.php $DOCPATH/$DOCDIR/index.php
+ssh $DOCSRV "mkdir -p $DOCPATH/$DOCDIR"
+scp /usr/local/bin/docsh-cmds/index.php $URI
+change-font white
+cd $WD
 
 docls
 
-}
-
-
+}  ### mjones@simplifiedbusinessit.com
 
 function note { # Create a text blurb describing this
 
@@ -136,7 +120,7 @@ rm /tmp/$NOTE
 
 }
 
-function docnp { # Move forst to next web page
+function docnp { # Move forward to next web page
 
 PAGENO=`echo $THISPAGE.php | sed 's/.php//g'` 
 
@@ -178,9 +162,9 @@ function doccs { # Change to $1 section
 	THISSECTION=1
 	fi
 
-changefont green
+change-font green
 echo "Host: $HOST | Page: $THISPAGE | Section: $THISSECTION"
-changefont white
+change-font white
 }
 
 function b { # Change to last section
@@ -199,14 +183,14 @@ doccs
 
 function docls { # Display list of page pieces for current page 
 
-ssh $DOCSRV "$RBIN/docls.remote $DOCBIN $DOCPATH/$DOCDIR $THISPAGE"
-#ssh $DOCSRV "/usr/local/bin/docsh-cmds/readnotes $DOCPATH/$DOCDIR"
-changefont green
+ssh $DOCSRV "/usr/local/bin/docsh-cmds/docls.remote $DOCBIN $DOCPATH/$DOCDIR $THISPAGE"
+ssh $DOCSRV "/usr/local/bin/docsh-cmds/readnotes $DOCPATH/$DOCDIR"
+change-font green
 echo "URI: $URI"
 echo "Host: $HOST"
 echo "Page: $THISPAGE"
 echo "Section: $THISSECTION"
-changefont white
+change-font white
 
 }
 
@@ -225,7 +209,7 @@ rm /tmp/$$.docvi
 function docw { # Publish Current page 
 
 ssh $DOCSRV "cp $DOCPATH/library/* $DOCPATH/$DOCDIR"
-ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; cat heading $THISPAGE-?.php $THISPAGE-??.php > $THISPAGE.php 2>/dev/null"
+ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; cat 0.php $THISPAGE-*.php > $THISPAGE.php"
 
 DOCBASE=`basename $DOCDIR`
 
@@ -235,7 +219,7 @@ echo "<div class=shortspacing style='float:left'>
   </div>
 </div>" >> /tmp/$$.me.php
 
-# ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; ln -fs 1.php index.php 2>/dev/null"
+ssh $DOCSRV "cd $DOCPATH/$DOCDIR ; ln -s 1.php index.php 2>/dev/null"
 
 scp /tmp/$$.me.php $URI/me.php >/dev/null 2>&1
 
